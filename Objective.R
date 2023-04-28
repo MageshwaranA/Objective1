@@ -1,33 +1,37 @@
-#To demonstrate the use of probability as a foundation of statistical modeling,
-#including inference and maximum likelihood estimation, 
-#we can use the built-in data source in R, called "mtcars".
 
-#The mtcars dataset contains information about various car models, 
-#including their miles per gallon (mpg), horsepower, and weight, among other variables.
-
-#We can use this dataset to calculate the likelihood function
-#and maximum likelihood estimates for a simple linear regression model that 
-#predicts mpg based on horsepower.
+data(iris)
 
 
-# Load the mtcars dataset
-data(mtcars)
+sepal_length <- iris$Sepal.Length
 
-# Create a simple linear regression model
-model <- lm(mpg ~ hp, data = mtcars)
 
-# Calculate the likelihood function
-likelihood <- function(beta, x, y) {
-  mu <- beta[1] + beta[2]*x
-  -sum(dnorm(y, mean = mu, sd = 1, log = TRUE))
+sample_mean <- mean(sepal_length)
+sample_sd <- sd(sepal_length)
+
+
+normal_dist <- function(x, mu, sd) {
+  (1/(sd * sqrt(2*pi))) * exp(-((x-mu)^2)/(2*sd^2))
 }
 
-# Find the maximum likelihood estimates for the model
-fit <- optim(c(0,0), likelihood, x = mtcars$hp, y = mtcars$mpg)
+hist(sepal_length, main = "Histogram of Sepal Length", xlab = "Sepal Length")
 
-# Print the results
-summary(model)
+
+curve(normal_dist(x, sample_mean, sample_sd), col = "red", add = TRUE)
+
+
+pnorm(5.5, mean = sample_mean, sd = sample_sd)
+
+
+log_likelihood <- function(mu, sd) {
+  -sum(dnorm(sepal_length, mean = mu, sd = sample_sd, log = TRUE))
+}
+
+
+mle <- optimize(log_likelihood, interval = c(0,10), maximum = TRUE)
+mu_mle <- mle$maximum
+sd_mle <- mu_mle/mle$objective
+
+
 cat("Maximum Likelihood Estimates:\n")
-cat("Intercept: ", fit$par[1], "\n")
-cat("Slope: ", fit$par[2], "\n")
-
+cat("mu = ", mu_mle, "\n")
+cat("sd = ", sd_mle, "\n")
